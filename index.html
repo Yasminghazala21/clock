@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+  />
+
+  <title>iPhone Style Clock</title>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Bebas+Neue&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg1: #050505;
+      --bg2: #0e0e0e;
+
+      --glass: rgba(255,255,255,0.05);
+      --glass-strong: rgba(255,255,255,0.08);
+
+      --border: rgba(255,255,255,0.08);
+
+      --digit: #ffffff;
+
+      --label: rgba(255,255,255,0.30);
+
+      --shadow:
+        0 25px 60px rgba(0,0,0,0.65);
+
+      --inner:
+        inset 0 1px 1px rgba(255,255,255,0.08),
+        inset 0 -2px 4px rgba(0,0,0,0.45);
+
+      --radius: 34px;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      font-family: 'Inter', sans-serif;
+
+      background:
+        radial-gradient(circle at top left, #1f1f1f 0%, transparent 35%),
+        radial-gradient(circle at bottom right, #181818 0%, transparent 35%),
+        linear-gradient(to bottom, var(--bg1), var(--bg2));
+
+      position: relative;
+    }
+
+    /* Animated ambient glow */
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.18;
+      animation: floatBlob 10s ease-in-out infinite alternate;
+    }
+
+    .blob1 {
+      width: 350px;
+      height: 350px;
+      background: #2a2a2a;
+      top: -80px;
+      left: -100px;
+    }
+
+    .blob2 {
+      width: 320px;
+      height: 320px;
+      background: #1b1b1b;
+      bottom: -120px;
+      right: -100px;
+      animation-delay: 4s;
+    }
+
+    @keyframes floatBlob {
+      from {
+        transform: translate(0px, 0px);
+      }
+
+      to {
+        transform: translate(40px, 30px);
+      }
+    }
+
+    /* Main Scene */
+
+    .scene {
+      width: 100%;
+      max-width: 520px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      gap: 12px;
+
+      padding: 20px;
+
+      z-index: 5;
+    }
+
+    .group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      flex: 1;
+    }
+
+    .cards-row {
+      display: flex;
+      gap: 14px;
+    }
+
+    /* Tiles */
+
+    .tile {
+      position: relative;
+
+      width: 38vw;
+      max-width: 145px;
+
+      height: 54vw;
+      max-height: 230px;
+
+      overflow: hidden;
+
+      border-radius: var(--radius);
+
+      background: var(--glass);
+
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+
+      border: 1px solid var(--border);
+
+      box-shadow:
+        var(--shadow),
+        var(--inner);
+
+      transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+    }
+
+    .tile:hover {
+      transform: translateY(-3px);
+    }
+
+    .tile::before {
+      content: "";
+
+      position: absolute;
+      inset: 0;
+
+      border-radius: var(--radius);
+
+      background:
+        linear-gradient(
+          to bottom,
+          rgba(255,255,255,0.12),
+          transparent 18%,
+          transparent 70%,
+          rgba(255,255,255,0.02)
+        );
+
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .tile::after {
+      content: "";
+
+      position: absolute;
+      inset: 1px;
+
+      border-radius: calc(var(--radius) - 2px);
+
+      box-shadow:
+        inset 0 0 30px rgba(255,255,255,0.02),
+        inset 0 0 90px rgba(255,255,255,0.03);
+
+      pointer-events: none;
+    }
+
+    /* Digits */
+
+    .digit-current,
+    .digit-next {
+      position: absolute;
+      inset: 0;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      font-family: 'Bebas Neue', sans-serif;
+
+      font-size: min(30vw, 180px);
+
+      color: var(--digit);
+
+      letter-spacing: -3px;
+
+      text-shadow:
+        0 0 10px rgba(255,255,255,0.12),
+        0 0 30px rgba(255,255,255,0.04);
+
+      user-select: none;
+    }
+
+    .digit-next {
+      transform: translateY(120%);
+      opacity: 0;
+    }
+
+    .tile.animate .digit-current {
+      animation: slideUp 0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+    }
+
+    .tile.animate .digit-next {
+      animation: slideIn 0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+    }
+
+    @keyframes slideUp {
+      0% {
+        transform: translateY(0%);
+        opacity: 1;
+        filter: blur(0px);
+      }
+
+      100% {
+        transform: translateY(-120%);
+        opacity: 0;
+        filter: blur(7px);
+      }
+    }
+
+    @keyframes slideIn {
+      0% {
+        transform: translateY(120%);
+        opacity: 0;
+        filter: blur(7px);
+      }
+
+      100% {
+        transform: translateY(0%);
+        opacity: 1;
+        filter: blur(0px);
+      }
+    }
+
+    /* Labels */
+
+    .group-label {
+      font-size: 11px;
+      font-weight: 300;
+
+      letter-spacing: 5px;
+      text-transform: uppercase;
+
+      color: var(--label);
+    }
+
+    /* Divider */
+
+    .divider {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      gap: 24px;
+
+      padding-bottom: 24px;
+    }
+
+    .div-dot {
+      width: 8px;
+      height: 8px;
+
+      border-radius: 50%;
+
+      background: rgba(255,255,255,0.12);
+
+      box-shadow:
+        0 0 10px rgba(255,255,255,0.10);
+
+      transition: all 0.3s ease;
+    }
+
+    .div-dot.lit {
+      background: rgba(255,255,255,0.75);
+
+      box-shadow:
+        0 0 15px rgba(255,255,255,0.65),
+        0 0 35px rgba(255,255,255,0.18);
+    }
+
+    /* Date */
+
+    .date-bar {
+      position: fixed;
+
+      bottom: 26px;
+      left: 50%;
+
+      transform: translateX(-50%);
+
+      font-size: 11px;
+      font-weight: 300;
+
+      letter-spacing: 4px;
+      text-transform: uppercase;
+
+      color: rgba(255,255,255,0.25);
+
+      white-space: nowrap;
+    }
+
+    /* AM PM pill */
+
+    .period-pill {
+      position: fixed;
+
+      top: 28px;
+      right: 28px;
+
+      padding: 8px 16px;
+
+      border-radius: 999px;
+
+      background: var(--glass-strong);
+
+      border: 1px solid rgba(255,255,255,0.08);
+
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+
+      box-shadow:
+        0 10px 25px rgba(0,0,0,0.35);
+
+      font-family: 'Bebas Neue', sans-serif;
+
+      font-size: 20px;
+
+      letter-spacing: 2px;
+
+      color: rgba(255,255,255,0.65);
+    }
+
+    /* Responsive */
+
+    @media (max-width: 480px) {
+
+      .scene {
+        gap: 6px;
+        padding: 14px;
+      }
+
+      .cards-row {
+        gap: 10px;
+      }
+
+      .tile {
+        width: 40vw;
+        height: 58vw;
+        border-radius: 30px;
+      }
+
+      .digit-current,
+      .digit-next {
+        font-size: 34vw;
+      }
+
+      .divider {
+        padding-bottom: 18px;
+      }
+
+      .date-bar {
+        bottom: 20px;
+        font-size: 10px;
+        letter-spacing: 3px;
+      }
+
+      .period-pill {
+        top: 18px;
+        right: 18px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- Background Glow -->
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+
+  <!-- AM PM -->
+  <div class="period-pill" id="period">AM</div>
+
+  <!-- Main Clock -->
+  <div class="scene">
+
+    <!-- HOURS -->
+    <div class="group">
+
+      <div class="cards-row">
+
+        <div class="tile" id="h0">
+          <div class="digit-current">0</div>
+          <div class="digit-next">0</div>
+        </div>
+
+        <div class="tile" id="h1">
+          <div class="digit-current">0</div>
+          <div class="digit-next">0</div>
+        </div>
+
+      </div>
+
+      <div class="group-label">Hour</div>
+
+    </div>
+
+    <!-- Divider -->
+
+    <div class="divider">
+      <div class="div-dot" id="dd1"></div>
+      <div class="div-dot" id="dd2"></div>
+    </div>
+
+    <!-- Minutes -->
+
+    <div class="group">
+
+      <div class="cards-row">
+
+        <div class="tile" id="m0">
+          <div class="digit-current">0</div>
+          <div class="digit-next">0</div>
+        </div>
+
+        <div class="tile" id="m1">
+          <div class="digit-current">0</div>
+          <div class="digit-next">0</div>
+        </div>
+
+      </div>
+
+      <div class="group-label">Min</div>
+
+    </div>
+
+  </div>
+
+  <!-- Date -->
+  <div class="date-bar" id="date-bar"></div>
+
+  <script>
+
+    const DAYS = [
+      'Sun',
+      'Mon',
+      'Tue',
+      'Wed',
+      'Thu',
+      'Fri',
+      'Sat'
+    ];
+
+    const MONTHS = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+
+    function pad(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    const shown = {
+      h: '--',
+      m: '--'
+    };
+
+    function animateTile(id, newChar) {
+
+      const tile = document.getElementById(id);
+
+      const current =
+        tile.querySelector('.digit-current');
+
+      const next =
+        tile.querySelector('.digit-next');
+
+      if (current.textContent === newChar) return;
+
+      next.textContent = newChar;
+
+      tile.classList.remove('animate');
+
+      void tile.offsetWidth;
+
+      tile.classList.add('animate');
+
+      setTimeout(() => {
+
+        current.textContent = newChar;
+        next.textContent = newChar;
+
+        tile.classList.remove('animate');
+
+      }, 620);
+
+    }
+
+    function pulseDots() {
+
+      ['dd1', 'dd2'].forEach(id => {
+
+        const el = document.getElementById(id);
+
+        el.classList.add('lit');
+
+        setTimeout(() => {
+          el.classList.remove('lit');
+        }, 450);
+
+      });
+
+    }
+
+    function updateClock() {
+
+      const now = new Date();
+
+      const h24 = now.getHours();
+
+      const h12 = h24 % 12 || 12;
+
+      const hStr = pad(h12);
+
+      const mStr = pad(now.getMinutes());
+
+      document.getElementById('period').textContent =
+        h24 >= 12 ? 'PM' : 'AM';
+
+      /* HOURS */
+
+      if (shown.h !== hStr) {
+
+        animateTile('h0', hStr[0]);
+        animateTile('h1', hStr[1]);
+
+        shown.h = hStr;
+      }
+
+      /* MINUTES */
+
+      if (shown.m !== mStr) {
+
+        animateTile('m0', mStr[0]);
+        animateTile('m1', mStr[1]);
+
+        shown.m = mStr;
+
+        pulseDots();
+      }
+
+      /* DATE */
+
+      document.getElementById('date-bar').textContent =
+        `${DAYS[now.getDay()]} · ${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+
+    }
+
+    /* Initial Render */
+
+    (function init() {
+
+      const now = new Date();
+
+      const h24 = now.getHours();
+
+      const h12 = h24 % 12 || 12;
+
+      const hStr = pad(h12);
+
+      const mStr = pad(now.getMinutes());
+
+      ['h0', 'h1', 'm0', 'm1'].forEach((id, i) => {
+
+        const value =
+          i < 2
+            ? hStr[i]
+            : mStr[i - 2];
+
+        const tile = document.getElementById(id);
+
+        tile.querySelector('.digit-current').textContent = value;
+        tile.querySelector('.digit-next').textContent = value;
+
+      });
+
+      document.getElementById('period').textContent =
+        h24 >= 12 ? 'PM' : 'AM';
+
+      shown.h = hStr;
+      shown.m = mStr;
+
+      document.getElementById('date-bar').textContent =
+        `${DAYS[now.getDay()]} · ${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+
+    })();
+
+    setInterval(updateClock, 1000);
+
+  </script>
+
+</body>
+</html>
